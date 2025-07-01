@@ -9,6 +9,7 @@ export const fileCache = new Map<string, any>();
  * @returns JSON解析后的数据
  */
 export async function getR2FileWithCache(key: string) {
+  try {
   // 检查缓存
   if (fileCache.has(key)) {
     console.log(`使用缓存: ${key}`);
@@ -45,6 +46,10 @@ export async function getR2FileWithCache(key: string) {
   fileCache.set(key, jsonData);
   
   return jsonData;
+} catch (error: any) {
+  console.error(`R2访问错误 (${key}):`, error.message, error.code);
+  throw error;
+}
 }
 
 /**
