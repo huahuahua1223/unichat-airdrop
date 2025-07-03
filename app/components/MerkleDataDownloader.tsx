@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState } from 'react';
+import { filenameToCidMap } from '../utils/pinata-service';
 
 interface MerkleDataFile {
   name: string;
+  cid?: string;
   size?: string;
 }
 
@@ -18,10 +20,13 @@ const merkleFiles: MerkleDataFile[] = [
   { name: "batches/batch_6.json" },
   { name: "batches/batch_7.json" },
   { name: "batches/batch_8.json" },
-  { name: "address_map.json" },
+  // { name: "address_map.json" },
   { name: "merkle_data.json" },
   // 可以根据实际数据文件添加更多
-];
+].map(file => ({
+  ...file,
+  cid: filenameToCidMap[file.name] || '',
+}));
 
 export default function MerkleDataDownloader() {
   const [loading, setLoading] = useState<string | null>(null);
@@ -30,7 +35,7 @@ export default function MerkleDataDownloader() {
     try {
       setLoading(filename);
       
-      // 获取预签名URL
+      // 获取下载链接
       const response = await fetch('/api/merkle-proof', {
         method: 'POST',
         headers: {
@@ -75,15 +80,19 @@ export default function MerkleDataDownloader() {
 
   return (
     <div className="p-4 border rounded-lg shadow-sm">
-      <h2 className="text-xl font-bold mb-4">Merkle 数据文件</h2>
+      <h2 className="text-xl font-bold mb-4">Merkle 数据文件 (IPFS)</h2>
       <div className="space-y-2">
         {merkleFiles.map((file) => (
           <div key={file.name} className="flex items-center justify-between p-2 border rounded hover:bg-gray-50">
-            <span>{file.name}</span>
+            <div className="flex flex-col">
+              <span>{file.name}</span>
+              {file.cid && <span className="text-xs text-gray-500">CID: {file.cid.substring(0, 16)}...</span>}
+            </div>
             <button
               onClick={() => downloadFile(file.name)}
-              disabled={loading === file.name}
+              disabled={loading === file.name || !file.cid}
               className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300"
+              title={!file.cid ? "未找到文件CID" : ""}
             >
               {loading === file.name ? '下载中...' : '下载'}
             </button>

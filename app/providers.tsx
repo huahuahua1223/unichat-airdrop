@@ -9,14 +9,22 @@ import { createConfig, WagmiProvider } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http } from "viem";
 // 只导入我们实际使用的链
-import { mainnet, sepolia, arbitrum } from "viem/chains";
+import { 
+//    mainnet,
+//    sepolia, 
+   arbitrum 
+} from "viem/chains";
 import { BitcoinWalletConnectors } from "@dynamic-labs/bitcoin";
 import { EthereumWalletConnectors } from "@dynamic-labs/ethereum";
 import { SolanaWalletConnectors } from "@dynamic-labs/solana";
 import { SuiWalletConnectors } from "@dynamic-labs/sui";
 
 // 严格定义我们仅使用的三条链
-const chains = [mainnet, sepolia, arbitrum] as const;
+const chains = [
+  // mainnet, 
+  // sepolia, 
+  arbitrum
+] as const;
 
 const config = createConfig({
   chains,
@@ -24,8 +32,8 @@ const config = createConfig({
   multiInjectedProviderDiscovery: false,
   // 为每个链定义传输方式
   transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
+    // [mainnet.id]: http(),
+    // [sepolia.id]: http(),
     [arbitrum.id]: http(),
   },
 });

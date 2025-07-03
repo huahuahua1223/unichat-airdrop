@@ -18,6 +18,10 @@ export default function AirdropClaim() {
   const [showNetworkWarning, setShowNetworkWarning] = useState(false);
   const [showDetails, setShowDetails] = useState(false); // 添加显示详细信息的状态
   
+  // 增加详细的检查状态
+  const [checkStatus, setCheckStatus] = useState<string>('');
+  const [checkProgress, setCheckProgress] = useState<number>(0);
+  
   // 合约地址
   const contractAddress = getMerkleDistributorAddress() as `0x${string}`;
 
@@ -86,26 +90,68 @@ export default function AirdropClaim() {
     if (!address) return;
     
     try {
+      // 重置状态
       setCheckingEligibility(true);
       setError(null);
+      setCheckProgress(0);
+      setCheckStatus('开始检查您的资格...');
+      
+      // 模拟初始化步骤
+      await simulateProgress(10, '准备查询您的地址信息...');
       
       // 获取用户的空投数据
+      await simulateProgress(30, '正在从批次数据中查找您的地址...');
+      
+      // 调用API获取数据
       const data = await getUserAirdropData(address);
+      
+      // 模拟数据处理
+      await simulateProgress(70, '正在验证您的Merkle证明...');
       
       if (data) {
         console.log('获取到的空投数据:', data);
+        
+        // 模拟验证完成
+        await simulateProgress(90, '正在计算您的空投数量...');
+        
+        // 设置数据
         setAirdropData(data);
+        setCheckStatus('验证成功！');
+        setCheckProgress(100);
+        
         // 获取数据后立即刷新领取状态
-        setTimeout(() => refetchIsClaimed(), 500);
+        setTimeout(() => {
+          refetchIsClaimed();
+          setCheckingEligibility(false);
+        }, 500);
       } else {
+        setCheckStatus('验证失败');
         setError("您没有资格获得空投");
+        setCheckingEligibility(false);
       }
     } catch (err: Error | unknown) {
       console.error("获取空投数据失败:", err);
       const errorMessage = err instanceof Error ? err.message : '未知错误';
       setError(`获取空投数据失败: ${errorMessage}`);
-    } finally {
+      setCheckStatus('检查出错');
       setCheckingEligibility(false);
+    }
+  };
+  
+  // 辅助函数：模拟进度
+  const simulateProgress = async (targetProgress: number, status: string) => {
+    setCheckStatus(status);
+    
+    // 平滑过渡到目标进度
+    const startProgress = checkProgress;
+    const increment = targetProgress - startProgress;
+    const steps = 10; // 过渡步骤数
+    
+    for (let i = 1; i <= steps; i++) {
+      const nextProgress = startProgress + (increment * i / steps);
+      setCheckProgress(nextProgress);
+      // 等待一小段时间
+      await new Promise(resolve => setTimeout(resolve, 80));
     }
   };
 
@@ -169,6 +215,23 @@ export default function AirdropClaim() {
           >
             {checkingEligibility ? "检查中..." : "检查我的空投资格"}
           </Button>
+          
+          {/* 增加进度条显示 */}
+          {checkingEligibility && (
+            <div className="mt-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>{checkStatus}</span>
+                <span>{Math.round(checkProgress)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                <div 
+                  className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out" 
+                  style={{ width: `${checkProgress}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
+          
           {error && <p className="text-red-500 text-center mt-4">{error}</p>}
         </CardSection>
       ) : (
